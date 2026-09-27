@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Players · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html" aria-current="page">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="filter-bar">
+      <label class="control">
+        <span>Games</span>
+        <select id="game-filter">
+          <option value="all">All games</option>
+          <option value="regular">Regular season only</option>
+        </select>
+      </label>
+      <label class="control">
+        <input type="checkbox" id="active-only">
+        <span>Current managers only</span>
+      </label>
+      <span class="muted small" id="starts-note"></span>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Positional strength</h2>
+          <p class="muted" id="pos-note"></p>
+        </div>
+        <label class="control">
+          <span>Show</span>
+          <select id="pos-metric">
+            <option value="above">Points above average per start</option>
+            <option value="avg">Average points per start</option>
+            <option value="total">Total points</option>
+            <option value="starts">Starts</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="pos-grid sortable">
+          <thead id="pos-head"></thead>
+          <tbody id="pos-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Player lookup</h2>
+          <p class="muted">Who started a player, how often, and what they got out of him.</p>
+        </div>
+        <label class="control">
+          <input id="player-search" list="player-list" placeholder="Search a player…" autocomplete="off">
+          <datalist id="player-list"></datalist>
+        </label>
+      </div>
+      <div id="player-result"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Most-started pairings</h2>
+          <p class="muted">The players each manager leaned on hardest. A crown marks a player's most frequent starter in the league.</p>
+        </div>
+        <div class="compare-controls">
+          <select id="loyal-manager" aria-label="Manager"></select>
+          <select id="loyal-pos" aria-label="Position">
+            <option value="">All positions</option>
+            <option>QB</option><option>RB</option><option>WR</option>
+            <option>TE</option><option>K</option><option>DEF</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead><tr><th class="num">#</th><th>Manager</th><th>Player</th><th>Pos</th>
+            <th class="num">Starts</th><th class="num">Points</th><th class="num">Avg</th><th>Seasons</th></tr></thead>
+          <tbody id="loyal-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Signature players</h2>
+          <p class="muted">Each manager's most-started player, biggest points producer, and best single game from a starter.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead><tr><th>Manager</th><th>Most started</th><th>Most points</th><th>Best game</th></tr></thead>
+          <tbody id="signature-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Biggest single games</h2>
+          <p class="muted">Highest-scoring starts in league history.</p>
+        </div>
+        <label class="control">
+          <span>Position</span>
+          <select id="big-pos">
+            <option value="">All</option>
+            <option>QB</option><option>RB</option><option>WR</option>
+            <option>TE</option><option>K</option><option>DEF</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead><tr><th class="num">#</th><th>Player</th><th>Pos</th><th class="num">Points</th>
+            <th>Manager</th><th>When</th></tr></thead>
+          <tbody id="big-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="players.js"></script>
+</body>
+</html>

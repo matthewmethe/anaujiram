@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>All-Time · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html" aria-current="page">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="sample-banner" class="banner" hidden>
+      Sample data: the names and results here are made up. Real league history loads once Yahoo API access is working.
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>All-time managers</h2>
+          <p class="muted" id="alltime-note"></p>
+        </div>
+        <label class="control">
+          <input type="checkbox" id="active-only">
+          <span>Current managers only</span>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="standings sortable">
+          <thead id="alltime-head"></thead>
+          <tbody id="alltime-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Finishes by season</h2>
+          <p class="muted">Final place each season, from Yahoo's final standings. Darker is better. A season in progress shows the current rank, marked "now".</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid">
+          <thead id="finish-head"></thead>
+          <tbody id="finish-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="alltime.js"></script>
+</body>
+</html>

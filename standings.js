@@ -1,0 +1,258 @@
+// Standings race page: season bump chart + weekly standings table.
+
+const state = { season: null, week: null, hidden: new Set() };
+const seasonData = () => DATA.seasons.find(s => s.season === state.season);
+const teamByKey = season => Object.fromEntries(season.teams.map(t => [t.key, t]));
+
+/* ---------- Bump chart ---------- */
+
+const chart = echarts.init($("bump-chart"), null, { renderer: "svg" });
+
+// Draws the chart through the week picked in the standings table. `reset` redraws from scratch
+// (new season, resize, theme change); otherwise lines animate to the new week.
+function renderChart(reset = true) {
+  const season = seasonData();
+  const shownWeeks = season.weeks.filter(w => w.week <= state.week);
+  const teams = teamByKey(season);
+  const lastRegular = season.regularSeasonWeeks;
+  const narrow = window.innerWidth < 640;
+  const ink = { primary: cssVar("--text-primary"), secondary: cssVar("--text-secondary"),
+                muted: cssVar("--text-muted"), grid: cssVar("--grid"), axis: cssVar("--axis"),
+                surface: cssVar("--surface"), border: cssVar("--border") };
+
+  const series = season.teams.map(team => {
+    const manager = managersById[team.manager];
+    const { color, dashed } = managerStyle(team.manager);
+    const data = shownWeeks.map(w => [w.week, w.standings.find(r => r.team === team.key).rank]);
+    return {
+      name: manager.name,
+      type: "line",
+      data,
+      symbol: dashed ? "rect" : "circle",
+      symbolSize: narrow ? 5 : 8,
+      lineStyle: { width: 2, type: dashed ? "dashed" : "solid", color },
+      itemStyle: { color, borderColor: ink.surface, borderWidth: 2 },
+      emphasis: { focus: "series", lineStyle: { width: 3 } },
+      blur: { lineStyle: { opacity: 0.12 }, itemStyle: { opacity: 0.12 } },
+      endLabel: { show: true, formatter: manager.name, color: ink.secondary,
+                  fontSize: narrow ? 11 : 12, distance: 8 },
+    };
+  });
+
+  // Reference marks live on their own series so hiding a manager never removes them:
+  // the playoff cut across the regular season, and a shaded playoffs region after it.
+  const cut = season.playoffTeams + 0.5;
+  const split = lastRegular + 0.5;
+  series.push({
+    type: "line", data: [[1, cut], [split, cut]], silent: true, z: 1,
+    symbol: "none", lineStyle: { color: ink.axis, type: [6, 4], width: 1.5 },
+    emphasis: { disabled: true }, blur: { lineStyle: { opacity: 1 } }, tooltip: { show: false },
+    markArea: {
+      silent: true,
+      itemStyle: { color: cssVar("--playoff-wash") },
+      label: { show: true, position: "top", distance: 6, color: ink.muted, fontSize: 11, formatter: "Playoffs" },
+      data: [[{ xAxis: split }, { xAxis: season.endWeek + 0.5 }]],
+    },
+    markLine: {
+      silent: true, symbol: "none",
+      lineStyle: { color: ink.axis, type: "solid", width: 1 },
+      label: { show: false },
+      data: [{ xAxis: split }],
+    },
+  });
+
+  chart.setOption({
+    animationDuration: 500,
+    grid: { left: 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
+    legend: { show: false, selected: Object.fromEntries(
+      season.teams.map(t => [managersById[t.manager].name, !state.hidden.has(t.manager)])) },
+    xAxis: {
+      type: "value", min: 1, max: season.endWeek + 0.5, interval: 1,
+      name: "Week", nameLocation: "middle", nameGap: 28,
+      nameTextStyle: { color: ink.muted },
+      axisLine: { lineStyle: { color: ink.axis } }, axisTick: { show: false },
+      axisLabel: { color: ink.muted, formatter: v => Number.isInteger(v) ? String(v) : "" },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: "value", inverse: true, min: 1, max: season.numTeams, interval: 1,
+      axisLabel: { color: ink.muted, formatter: ordinal },
+      splitLine: { lineStyle: { color: ink.grid } },
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "line", snap: true, lineStyle: { color: ink.axis } },
+      backgroundColor: ink.surface, borderColor: ink.border,
+      textStyle: { color: ink.primary, fontSize: 13 },
+      formatter: params => tooltipHtml(season, teams, params),
+    },
+    series,
+  }, reset);
+}
+
+// Right margin wide enough for the longest end-of-line name label.
+function endLabelRoom(season, narrow) {
+  const ctx = (endLabelRoom.canvas ??= document.createElement("canvas")).getContext("2d");
+  ctx.font = `${narrow ? 11 : 12}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  const widest = Math.max(...season.teams.map(t => ctx.measureText(managersById[t.manager].name).width));
+  return Math.ceil(widest) + 20;
+}
+
+// "Semifinals" / "Final" for the playoff weeks, "Week N" otherwise.
+function weekName(season, weekNum) {
+  if (weekNum < season.playoffStartWeek) return `Week ${weekNum}`;
+  if (weekNum === season.endWeek) return `Week ${weekNum}: Final`;
+  return season.endWeek - weekNum === 1 ? `Week ${weekNum}: Semifinals` : `Week ${weekNum}: Playoffs`;
+}
+
+// "W 151.36–115.36", "L 93.64–130.02", or "–" when the team had no game.
+function gameResult(r) {
+  if (r.pts == null) return "–";
+  return `${r.result} ${fmtPts(r.pts)}–${fmtPts(r.oppPts)}`;
+}
+
+function tooltipHtml(season, teams, params) {
+  if (!params.length) return "";
+  const weekNum = Math.round(Number(params[0].axisValue));
+  const week = season.weeks.find(w => w.week === weekNum);
+  const muted = text => `<b>${weekName(season, weekNum)}</b><br><span style="color:${cssVar("--text-muted")}">${text}</span>`;
+  if (!week) return muted("Not played yet");
+  if (weekNum > state.week) return muted("Click to show the chart through this week");
+  const playoffs = week.phase === "playoffs";
+  const final = weekNum === season.endWeek;
+  const cell = "padding-left:12px;font-variant-numeric:tabular-nums";
+  const rows = week.standings
+    .filter(r => !state.hidden.has(teams[r.team].manager))
+    .map(r => {
+      const t = teams[r.team];
+      const { color } = managerStyle(t.manager);
+      const detail = playoffs
+        ? `<td style="${cell}">${gameResult(r)}</td>`
+        : `<td style="${cell}">${record(r)}</td><td style="${cell};text-align:right">${fmtPts(r.pf)}</td>`;
+      return `<tr>
+        <td style="text-align:right;padding-right:6px">${final ? ordinal(r.rank) : `${r.rank}.`}</td>
+        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px"></span>${escapeHtml(managersById[t.manager].name)}</td>
+        ${detail}
+      </tr>`;
+    }).join("");
+  const title = final ? `${weekName(season, weekNum)} (final standings)`
+              : playoffs ? weekName(season, weekNum) : `After week ${weekNum}`;
+  return `<b>${title}</b><table style="margin-top:4px;border-collapse:collapse">${rows}</table>`;
+}
+
+chart.getZr().on("click", e => {
+  if (!chart.containPixel("grid", [e.offsetX, e.offsetY])) return;
+  const [x] = chart.convertFromPixel("grid", [e.offsetX, e.offsetY]);
+  const week = Math.round(x);
+  if (seasonData().weeks.some(w => w.week === week)) setWeek(week);
+});
+
+/* ---------- Legend ---------- */
+
+function renderLegend() {
+  const season = seasonData();
+  const managers = season.teams.map(t => managersById[t.manager])
+    .sort((a, b) => a.dashed - b.dashed || a.slot - b.slot);
+  const legend = $("legend");
+  legend.innerHTML = "";
+  for (const m of managers) {
+    const { color, dashed } = managerStyle(m.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("aria-pressed", String(!state.hidden.has(m.id)));
+    btn.innerHTML = `<span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(m.name)}`;
+    btn.addEventListener("click", () => {
+      state.hidden.has(m.id) ? state.hidden.delete(m.id) : state.hidden.add(m.id);
+      btn.setAttribute("aria-pressed", String(!state.hidden.has(m.id)));
+      chart.dispatchAction({ type: "legendToggleSelect", name: m.name });
+    });
+    btn.addEventListener("mouseenter", () => chart.dispatchAction({ type: "highlight", seriesName: m.name }));
+    btn.addEventListener("mouseleave", () => chart.dispatchAction({ type: "downplay", seriesName: m.name }));
+    legend.appendChild(btn);
+  }
+}
+
+/* ---------- Standings table ---------- */
+
+function renderTable() {
+  const season = seasonData();
+  const teams = teamByKey(season);
+  const idx = season.weeks.findIndex(w => w.week === state.week);
+  const week = season.weeks[idx];
+  const prevRank = idx > 0
+    ? Object.fromEntries(season.weeks[idx - 1].standings.map(r => [r.team, r.rank])) : {};
+
+  const playoffs = week.phase === "playoffs";
+  const final = state.week === season.endWeek;
+  $("table-title").textContent = final ? `${season.season} final standings`
+    : playoffs ? `${season.season} ${weekName(season, state.week).split(": ")[1].toLowerCase()}`
+    : `${season.season} standings`;
+  $("standings-head").innerHTML = `<tr>
+    <th class="num">${final ? "Finish" : "Rank"}</th><th class="num" title="Change since previous week">±</th>
+    <th>Team</th><th>Manager</th>
+    ${playoffs
+      ? `<th class="num">Seed</th><th class="num">This week</th><th class="num">Reg. season</th>`
+      : `<th class="num">W-L-T</th><th class="num">PF</th><th class="num">PA</th>`}
+  </tr>`;
+
+  $("standings-body").innerHTML = week.standings.map(r => {
+    const t = teams[r.team];
+    const { color, dashed } = managerStyle(t.manager);
+    const move = prevRank[r.team] ? prevRank[r.team] - r.rank : 0;
+    const delta = move > 0 ? `<span class="delta-up">▲${move}</span>`
+                : move < 0 ? `<span class="delta-down">▼${-move}</span>`
+                : `<span class="delta-none">–</span>`;
+    const stats = playoffs
+      ? `<td class="num">${r.seed}</td><td class="num">${gameResult(r)}</td><td class="num">${record(r)}</td>`
+      : `<td class="num">${record(r)}</td><td class="num">${fmtPts(r.pf)}</td><td class="num">${fmtPts(r.pa)}</td>`;
+    return `<tr class="${!playoffs && r.rank === season.playoffTeams ? "cutline" : ""}">
+      <td class="num">${final ? ordinal(r.rank) : r.rank}</td>
+      <td class="num">${delta}</td>
+      <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(t.name)}${final && r.rank === 1 ? ' <span class="champ">Champion</span>' : ""}</span></td>
+      <td>${escapeHtml(managersById[t.manager].name)}</td>
+      ${stats}
+    </tr>`;
+  }).join("");
+}
+
+/* ---------- Controls ---------- */
+
+function setWeek(week, reset = false) {
+  state.week = week;
+  $("week-select").value = String(week);
+  renderChart(reset);
+  renderTable();
+}
+
+function setSeason(seasonNum) {
+  state.season = seasonNum;
+  state.hidden.clear();
+  const season = seasonData();
+  $("week-select").innerHTML = season.weeks
+    .map(w => `<option value="${w.week}">${w.phase === "playoffs" ? weekName(season, w.week) : w.week}</option>`).join("");
+  renderLegend();
+  setWeek(season.weeks[season.weeks.length - 1].week, true);
+}
+
+function init() {
+  const playable = DATA.seasons.filter(s => s.weeks.length);
+  $("season-select").innerHTML = playable.slice().reverse()
+    .map(s => `<option value="${s.season}">${s.season}</option>`).join("");
+  $("season-select").addEventListener("change", e => setSeason(Number(e.target.value)));
+  $("week-select").addEventListener("change", e => setWeek(Number(e.target.value)));
+
+  window.addEventListener("resize", () => { chart.resize(); renderChart(); });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    renderChart(); renderLegend(); renderTable();
+  });
+
+  const params = new URLSearchParams(location.search);
+  const requested = Number(params.get("season"));
+  const initial = playable.some(s => s.season === requested) ? requested : playable[playable.length - 1].season;
+  $("season-select").value = String(initial);
+  setSeason(initial);
+  const week = Number(params.get("week"));
+  if (seasonData().weeks.some(w => w.week === week)) setWeek(week, true);
+}
+
+init();

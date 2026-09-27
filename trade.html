@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trade Greaser · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html" aria-current="page">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Trade Greaser</h2>
+          <p class="muted">Pick your team and what you're after. For every other team it finds up to two trades that are fair by this week's trade values and improve your starting lineup, ranked so the ones that help both sides come first.</p>
+          <p class="muted" id="as-of"></p>
+        </div>
+      </div>
+      <div class="tg-controls">
+        <label class="control"><span>Your team</span><select id="team-select"></select></label>
+        <div class="control"><span>Looking for</span><div id="want-boxes" class="tg-row"></div></div>
+        <fieldset class="control tg-row tg-shape">
+          <legend class="sr-only">Trade shape</legend>
+          <span>Shape</span>
+          <label class="tg-pill"><input type="radio" name="shape" value="1-1" checked> 1 for 1</label>
+          <label class="tg-pill" title="You send two players for one better one"><input type="radio" name="shape" value="2-1"> 2 for 1</label>
+          <label class="tg-pill" title="You send one star for two players"><input type="radio" name="shape" value="1-2"> 1 for 2</label>
+        </fieldset>
+        <label class="control"><span>Values</span><select id="source-select"></select></label>
+        <label class="control"><span>Fairness</span>
+          <select id="tol-select">
+            <option value="0.05">Tight (within 5%)</option>
+            <option value="0.1" selected>Fair (within 10%)</option>
+            <option value="0.2">Loose (within 20%)</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Suggested trades</h2>
+          <p class="muted" id="value-note"></p>
+          <p class="muted">When one side sends two players, the lesser one counts at 80%, so it takes a little extra to land the best player in the deal.</p>
+        </div>
+      </div>
+      <div id="suggestions" class="tg-grid"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 id="roster-title">Your roster</h2>
+          <p class="muted">Check "Keep" on anyone you won't trade. Starters are your best lineup by trade value; points per game are this season's.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead><tr><th>Keep</th><th>Player</th><th></th><th class="num">Value</th><th class="num">Pts/game</th></tr></thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="trade.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Start/Sit · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html" aria-current="page">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="filter-bar">
+      <label class="control">
+        <span>Games</span>
+        <select id="game-filter">
+          <option value="all">All games</option>
+          <option value="regular">Regular season only</option>
+        </select>
+      </label>
+      <label class="control">
+        <input type="checkbox" id="active-only">
+        <span>Current managers only</span>
+      </label>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Lineup IQ</h2>
+          <p class="muted">Every week compared with the best lineup that manager could have set from their own starters and bench (injured reserve excluded). Click a column to sort.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings sortable">
+          <thead id="iq-head"></thead>
+          <tbody id="iq-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Diving deeper</h2>
+          <p class="muted">Efficiency punishes a deep bench: with fodder behind your starters the right lineup is obvious, but with good players sitting there every week is a coin flip. So each week is also compared with <b>autopilot</b>, the lineup you'd get by starting whoever had the best season-to-date average (last season's helps fill in the first few weeks; players who scored 0 are treated as byes or inactive).</p>
+          <ul class="muted explain">
+            <li><b>Hidden pts</b>: points the best lineup found that autopilot missed. Bigger means the bench made the calls harder.</li>
+            <li><b>vs autopilot</b>: points gained or lost by not just starting the usual guys.</li>
+            <li><b>Decision score</b>: the share of those hidden points the manager actually captured. 0% is autopilot; below zero means the tinkering cost points.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings sortable">
+          <thead id="deep-head"></thead>
+          <tbody id="deep-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Efficiency by season</h2>
+          <p class="muted">Share of the best possible score each manager actually put up. Blue beats that season's league average, red trails it.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid">
+          <thead id="season-head"></thead>
+          <tbody id="season-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Costliest benchings</h2>
+          <p class="muted">The weeks with the most points left on the bench, and the lineup changes that would have fixed them. Swaps follow the lineup rules: QB, K and DEF swap for the same position; RB, WR and TE can swap through the flex.</p>
+        </div>
+        <div class="compare-controls">
+          <select id="blunder-manager" aria-label="Manager"></select>
+          <label class="control"><input type="checkbox" id="blunder-cost"><span>Only games it cost</span></label>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead><tr><th class="num">#</th><th>Manager</th><th>When</th><th class="num">Left on bench</th>
+            <th>Should have started</th><th>Result</th></tr></thead>
+          <tbody id="blunder-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="startsit.js"></script>
+</body>
+</html>

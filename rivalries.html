@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rivalries · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html" aria-current="page">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="sample-banner" class="banner" hidden>
+      Sample data: the names and results here are made up. Real league history loads once Yahoo API access is working.
+    </div>
+
+    <section class="card" id="compare">
+      <div class="card-head">
+        <div>
+          <h2>Compare two managers</h2>
+          <p class="muted" id="compare-hint">Pick two managers, or click a square in the grid below.</p>
+        </div>
+        <div class="compare-controls">
+          <select id="pick-a" aria-label="First manager"></select>
+          <button type="button" id="swap" class="icon-btn" title="Swap">⇄</button>
+          <select id="pick-b" aria-label="Second manager"></select>
+        </div>
+      </div>
+      <div id="compare-body" hidden>
+        <div id="compare-summary"></div>
+        <h3 class="subhead">Every meeting</h3>
+        <p class="muted small">Margin of victory, oldest to newest. Bars above the line are wins for <span id="margin-a"></span>; below are wins for <span id="margin-b"></span>.</p>
+        <div id="margin-chart" class="chart chart-short" role="img" aria-label="Margin of each head-to-head game"></div>
+        <h3 class="subhead">Game log</h3>
+        <div class="table-scroll">
+          <table class="standings">
+            <thead id="log-head"></thead>
+            <tbody id="log-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Head-to-head</h2>
+          <p class="muted">Each square is the <b>row</b> manager's record against the <b>column</b> manager, all games including playoffs. Click a square for the full rivalry.</p>
+        </div>
+        <div class="diverging-key" aria-hidden="true">
+          <div class="bar"></div>
+          <div class="labels"><span>Row loses more</span><span>Even</span><span>Row wins more</span></div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="h2h-grid">
+          <thead id="grid-head"></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Rivalry highlights</h2></div>
+      <div id="highlights" class="tiles"></div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="rivalries.js"></script>
+</body>
+</html>

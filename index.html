@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html" aria-current="page">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="sample-banner" class="banner" hidden>
+      Sample data: the names and results here are made up. Real league history loads once Yahoo API access is working.
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Standings race</h2>
+          <p class="muted">Rank after each regular-season week: record first, then points scored. The dashed line is the playoff cut; the shaded area is the playoffs, ending in Yahoo's final standings. Hover a line to follow one manager; click a week to see its standings.</p>
+        </div>
+        <label class="control">
+          <span>Season</span>
+          <select id="season-select"></select>
+        </label>
+      </div>
+      <div id="bump-chart" class="chart" role="img" aria-label="Weekly standings rank by manager"></div>
+      <div id="legend" class="legend"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 id="table-title">Standings</h2>
+        <label class="control">
+          <span>After week</span>
+          <select id="week-select"></select>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="standings">
+          <thead id="standings-head"></thead>
+          <tbody id="standings-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="standings.js"></script>
+</body>
+</html>

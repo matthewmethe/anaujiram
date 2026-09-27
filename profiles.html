@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Managers · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html" aria-current="page">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Managers</h2>
+          <p class="muted">Everyone who has played in the league. Pick one to open their profile.</p>
+        </div>
+      </div>
+      <div id="manager-tiles" class="manager-tiles"></div>
+    </section>
+
+    <div id="profile" hidden>
+      <section class="card profile-hero" id="hero"></section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Finishes over time</h2>
+            <p class="muted">Final standings each season, 1st at the top, next to the power rank: where the team would have ranked if it had played every other team every week. The dotted line is the trend in final finish.</p>
+          </div>
+        </div>
+        <div id="finish-chart" class="chart profile-chart" role="img" aria-label="Final finish and power rank by season"></div>
+        <div id="finish-legend" class="legend"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Power rankings</h2>
+            <p class="muted">Power rank ignores who you happened to play. Every regular-season week, each team is scored as if it played every other team (the all-play record). Luck is actual wins minus the wins that all-play record predicts.</p>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <h3 class="subhead">By season</h3>
+            <div class="table-scroll"><table class="standings">
+              <thead><tr><th>Season</th><th>Team</th><th class="num">Record</th><th class="num" title="Regular-season record against every team, every week">All-play</th>
+                <th class="num">Power</th><th class="num">Finish</th><th class="num" title="Actual wins minus all-play expected wins">Luck</th></tr></thead>
+              <tbody id="power-body"></tbody></table></div>
+          </div>
+          <div>
+            <h3 class="subhead">All-time league power ranking</h3>
+            <div class="table-scroll"><table class="standings">
+              <thead><tr><th class="num">#</th><th>Manager</th><th class="num">All-play</th><th class="num">Pct</th><th class="num" title="Career actual wins minus all-play expected wins">Luck</th></tr></thead>
+              <tbody id="league-power-body"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Best weekly plays</h2>
+            <p class="muted">The biggest games from single starters, and the manager's highest-scoring weeks as a team.</p>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <h3 class="subhead">Best starter performances</h3>
+            <div class="table-scroll"><table class="standings">
+              <thead><tr><th class="num">#</th><th>Player</th><th>Week</th><th class="num">Pts</th></tr></thead>
+              <tbody id="plays-body"></tbody></table></div>
+          </div>
+          <div>
+            <h3 class="subhead">Best team weeks</h3>
+            <div class="table-scroll"><table class="standings">
+              <thead><tr><th class="num">#</th><th>Week</th><th>Opponent</th><th class="num">Score</th></tr></thead>
+              <tbody id="weeks-body"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Best pickups</h2>
+            <p class="muted">Waiver claims and free-agent adds, ranked by the points they scored in this manager's starting lineup while on the roster.</p>
+          </div>
+        </div>
+        <div class="table-scroll"><table class="standings">
+          <thead><tr><th class="num">#</th><th>Player</th><th>How</th><th>Added</th><th class="num">Starts</th><th class="num">Starter pts</th></tr></thead>
+          <tbody id="pickups-body"></tbody></table></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Trades</h2>
+            <p class="muted">Every trade, best first. Points are what each player scored in the receiving team's starting lineup afterwards; net is what this manager got minus what they gave up.</p>
+          </div>
+        </div>
+        <div class="table-scroll"><table class="standings trade-log">
+          <thead><tr><th>Date</th><th>With</th><th>Received</th><th>Sent</th><th class="num">Net</th></tr></thead>
+          <tbody id="trades-body"></tbody></table></div>
+        <button type="button" class="icon-btn show-more" id="trades-more" hidden></button>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Strange but true</h2>
+            <p class="muted">Oddities from every game this manager has played, ranked against the rest of the league.</p>
+          </div>
+        </div>
+        <div id="oddities" class="tiles"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="profiles.js"></script>
+</body>
+</html>

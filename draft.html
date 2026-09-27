@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Draft · Anaujiram Record Hall</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Anaujiram Record Hall</h1>
+      <p class="sub">League history since 2018</p>
+      <nav class="site-nav" aria-label="Pages">
+        <a href="index.html">Standings race</a>
+        <a href="alltime.html">All-time</a>
+        <a href="profiles.html">Managers</a>
+        <a href="rivalries.html">Rivalries</a>
+        <a href="players.html">Players</a>
+        <a href="startsit.html">Start/Sit</a>
+        <a href="draft.html" aria-current="page">Draft</a>
+        <a href="pickups.html">Pickups</a>
+        <a href="trade.html">Trade Greaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="filter-bar">
+      <label class="control">
+        <span>Manager</span>
+        <select id="manager-select"></select>
+      </label>
+      <div class="pos-key" id="pos-key" aria-label="Position colors"></div>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 id="tend-title">Draft tendencies</h2>
+          <p class="muted" id="tend-note"></p>
+        </div>
+      </div>
+      <div id="first-tiles" class="tiles"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Position by round</h2>
+          <p class="muted" id="round-note"></p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid round-mix">
+          <thead id="mix-head"></thead>
+          <tbody id="mix-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 id="history-title">Draft history</h2>
+          <p class="muted">Every pick by round and season. Numbers are points scored as a starter for this manager that season; hover a pick for the full name and pick number.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid draft-history draft-board">
+          <thead id="history-head"></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>First pick at each position, by year</h2>
+          <p class="muted" id="trend-note">The round each manager first took a QB, RB, WR and TE each season. Blue is earlier than the league that year, red is later.</p>
+        </div>
+        <label class="control">
+          <span>Position</span>
+          <select id="trend-pos">
+            <option>QB</option><option>RB</option><option>WR</option><option selected>TE</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid">
+          <thead id="trend-head"></thead>
+          <tbody id="trend-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Draft board</h2>
+          <p class="muted">The full draft for one season. Numbers are points scored as a starter for the drafting team that season.</p>
+        </div>
+        <label class="control">
+          <span>Season</span>
+          <select id="board-season"></select>
+        </label>
+      </div>
+      <div class="table-scroll">
+        <table class="finish-grid draft-board">
+          <thead id="board-head"></thead>
+          <tbody id="board-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Steals and busts</h2>
+          <p class="muted">Judged by points scored as a starter for the team that drafted him, that season. Steals are from round 6 on; busts are from rounds 1–3.<span id="value-note"></span></p>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <h3 class="subhead">Steals</h3>
+          <div class="table-scroll"><table class="standings"><thead><tr><th>Player</th><th>Manager</th><th>Pick</th><th class="num">Pts</th></tr></thead>
+            <tbody id="steals-body"></tbody></table></div>
+        </div>
+        <div>
+          <h3 class="subhead">Busts</h3>
+          <div class="table-scroll"><table class="standings"><thead><tr><th>Player</th><th>Manager</th><th>Pick</th><th class="num">Pts</th></tr></thead>
+            <tbody id="busts-body"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="draft.js"></script>
+</body>
+</html>
