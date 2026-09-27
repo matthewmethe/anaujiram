@@ -435,3 +435,11 @@ fieldset.tg-shape { border: 0; margin: 0; padding: 0; }
   font-variant-numeric: tabular-nums; }
 tr.tg-kept td { color: var(--text-muted); }
 @media (max-width: 640px) { .tg-grid { grid-template-columns: 1fr; } }
+
+/* Draft board and draft history on phones: real column widths and sideways scrolling instead of
+   squeezing every team into the screen; the round labels stay pinned on the left. */
+@media (max-width: 640px) {
+  table.draft-board { table-layout: auto; width: max-content; min-width: 100%; }
+  .draft-board .pick-cell, .draft-board .board-team { min-width: 92px; max-width: 110px; }
+  .draft-board tr > th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+}
