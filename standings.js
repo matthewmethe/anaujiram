@@ -39,25 +39,30 @@ function renderChart(reset = true) {
     };
   });
 
+  // On a phone the x axis runs only a couple of weeks past the week shown (at least 4 weeks), so
+  // early in a season the lines get the width instead of empty weeks; it grows as the season goes on.
+  const xMax = narrow ? Math.min(season.endWeek, Math.max(state.week + 2, 4)) + 0.5 : season.endWeek + 0.5;
+
   // Reference marks live on their own series so hiding a manager never removes them:
   // the playoff cut across the regular season, and a shaded playoffs region after it.
   const cut = season.playoffTeams + 0.5;
   const split = lastRegular + 0.5;
+  const showPlayoffs = split < xMax;
   series.push({
-    type: "line", data: [[1, cut], [split, cut]], silent: true, z: 1,
+    type: "line", data: [[1, cut], [Math.min(split, xMax), cut]], silent: true, z: 1,
     symbol: "none", lineStyle: { color: ink.axis, type: [6, 4], width: 1.5 },
     emphasis: { disabled: true }, blur: { lineStyle: { opacity: 1 } }, tooltip: { show: false },
     markArea: {
       silent: true,
       itemStyle: { color: cssVar("--playoff-wash") },
       label: { show: true, position: "top", distance: 6, color: ink.muted, fontSize: 11, formatter: "Playoffs" },
-      data: [[{ xAxis: split }, { xAxis: season.endWeek + 0.5 }]],
+      data: showPlayoffs ? [[{ xAxis: split }, { xAxis: season.endWeek + 0.5 }]] : [],
     },
     markLine: {
       silent: true, symbol: "none",
       lineStyle: { color: ink.axis, type: "solid", width: 1 },
       label: { show: false },
-      data: [{ xAxis: split }],
+      data: showPlayoffs ? [{ xAxis: split }] : [],
     },
   });
 
@@ -67,7 +72,7 @@ function renderChart(reset = true) {
     legend: { show: false, selected: Object.fromEntries(
       season.teams.map(t => [managersById[t.manager].name, !state.hidden.has(t.manager)])) },
     xAxis: {
-      type: "value", min: 1, max: season.endWeek + 0.5, interval: 1,
+      type: "value", min: 1, max: xMax, interval: 1,
       name: "Week", nameLocation: "middle", nameGap: 28,
       nameTextStyle: { color: ink.muted },
       axisLine: { lineStyle: { color: ink.axis } }, axisTick: { show: false },
