@@ -57,5 +57,20 @@ function signedColor(t) {
   return { bg: mix(mid, pole, k), ink };
 }
 
+// On a phone the page tabs scroll sideways; each tab is a new page, so keep the tab row where it was
+// (and make sure the current tab is in view) instead of snapping back to the start.
+const nav = document.querySelector(".site-nav");
+if (nav && nav.scrollWidth > nav.clientWidth) {
+  let saved = null;
+  try { saved = sessionStorage.getItem("navScroll"); } catch {}
+  if (saved !== null) nav.scrollLeft = Number(saved);
+  const current = nav.querySelector("[aria-current]");
+  if (current) {
+    const n = nav.getBoundingClientRect(), c = current.getBoundingClientRect();
+    if (c.left < n.left || c.right > n.right) nav.scrollLeft += c.left - n.left - (n.width - c.width) / 2;
+  }
+  nav.addEventListener("click", () => { try { sessionStorage.setItem("navScroll", nav.scrollLeft); } catch {} });
+}
+
 const sample = document.getElementById("sample-banner");
 if (sample) sample.hidden = !DATA.isSample;
