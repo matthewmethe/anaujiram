@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>All-Time · Anaujiram Record Hall</title>
+  <title>Transactions · Anaujiram Record Hall</title>
   <link rel="stylesheet" href="style.css?v=20260926233748">
   <script src="data.js?v=20260926233748"></script>
 </head>
@@ -14,38 +14,48 @@
       <p class="sub">League history since 2018</p>
       <nav class="site-nav" aria-label="Pages">
         <a href="index.html?v=20260926233748">Standings race</a>
-        <a href="alltime.html?v=20260926233748" aria-current="page">All-time</a>
+        <a href="alltime.html?v=20260926233748">All-time</a>
         <a href="profiles.html?v=20260926233748">Managers</a>
         <a href="rivalries.html?v=20260926233748">Rivalries</a>
         <a href="players.html?v=20260926233748">Players</a>
         <a href="startsit.html?v=20260926233748">Start/Sit</a>
         <a href="draft.html?v=20260926233748">Draft</a>
-        <a href="transactions.html?v=20260926233748">Transactions</a>
+        <a href="transactions.html?v=20260926233748" aria-current="page">Transactions</a>
         <a href="trade.html?v=20260926233748">Trade Greaser</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <div id="sample-banner" class="banner" hidden>
-      Sample data: the names and results here are made up. Real league history loads once Yahoo API access is working.
+    <div class="filter-bar">
+      <label class="control">
+        <span>Season</span>
+        <select id="season-filter"></select>
+      </label>
+      <label class="control">
+        <span>Points</span>
+        <select id="game-filter">
+          <option value="all">All games</option>
+          <option value="regular">Regular season only</option>
+        </select>
+      </label>
+      <label class="control">
+        <input type="checkbox" id="active-only">
+        <span>Current managers only</span>
+      </label>
     </div>
 
     <section class="card">
       <div class="card-head">
         <div>
-          <h2>All-time managers</h2>
-          <p class="muted" id="alltime-note"></p>
+          <h2>Transactions by manager</h2>
+          <p class="muted">Moves are player adds, the same count as Yahoo's "Moves" column, split into waiver claims and free-agent pickups. Pickup points are what those players scored in that manager's starting lineup. Click a column to sort.</p>
         </div>
-        <label class="control">
-          <input type="checkbox" id="active-only">
-          <span>Current managers only</span>
-        </label>
       </div>
       <div class="table-scroll">
         <table class="standings sortable">
-          <thead id="alltime-head"></thead>
-          <tbody id="alltime-body"></tbody>
+          <thead id="count-head"></thead>
+          <tbody id="count-body"></tbody>
         </table>
       </div>
     </section>
@@ -53,20 +63,22 @@
     <section class="card">
       <div class="card-head">
         <div>
-          <h2>Finishes by season</h2>
-          <p class="muted">Final place each season, from Yahoo's final standings. Darker is better. A season in progress shows the current rank, marked "now".</p>
+          <h2>Moves by season</h2>
+          <p class="muted">Player adds each season. Darker means more active. Hover a cell for the waiver, free-agent, drop and trade breakdown.</p>
         </div>
       </div>
       <div class="table-scroll">
         <table class="finish-grid">
-          <thead id="finish-head"></thead>
-          <tbody id="finish-body"></tbody>
+          <thead id="grid-head"></thead>
+          <tbody id="grid-body"></tbody>
         </table>
       </div>
     </section>
+
+    <div id="best-cards"></div>
   </main>
 
   <script src="common.js?v=20260926233748"></script>
-  <script src="alltime.js?v=20260926233748"></script>
+  <script src="transactions.js?v=20260926233748"></script>
 </body>
 </html>

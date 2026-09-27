@@ -1,4 +1,4 @@
-// Pickups page: waiver claims, free-agent adds and trades, and what they produced.
+// Transactions page: waiver claims, free-agent adds and trades, and what they produced.
 
 const latestSeason = Math.max(...DATA.seasons.map(s => s.season));
 const currentManagers = new Set(DATA.seasons.find(s => s.season === latestSeason).teams.map(t => t.manager));
