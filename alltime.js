@@ -42,7 +42,7 @@ const COLUMNS = [
     title: "Last-place finishes" },
 ];
 
-const sortState = { key: "titles", dir: "desc" };
+const sortState = { key: "record", dir: "desc" };
 
 function compare(a, b, col, dir) {
   const va = col.sort(a), vb = col.sort(b);
