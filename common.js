@@ -60,7 +60,8 @@ function signedColor(t) {
 // On a phone the page tabs scroll sideways; each tab is a new page, so keep the tab row where it was
 // (and make sure the current tab is in view) instead of snapping back to the start.
 const nav = document.querySelector(".site-nav");
-if (nav && nav.scrollWidth > nav.clientWidth) {
+function restoreNavScroll() {
+  if (!nav || nav.scrollWidth <= nav.clientWidth) return;
   let saved = null;
   try { saved = sessionStorage.getItem("navScroll"); } catch {}
   if (saved !== null) nav.scrollLeft = Number(saved);
@@ -69,6 +70,11 @@ if (nav && nav.scrollWidth > nav.clientWidth) {
     const n = nav.getBoundingClientRect(), c = current.getBoundingClientRect();
     if (c.left < n.left || c.right > n.right) nav.scrollLeft += c.left - n.left - (n.width - c.width) / 2;
   }
+}
+if (nav) {
+  restoreNavScroll();
+  // Again once the page has drawn: Safari can reset the row if it's set before the first paint.
+  requestAnimationFrame(() => requestAnimationFrame(restoreNavScroll));
   nav.addEventListener("click", () => { try { sessionStorage.setItem("navScroll", nav.scrollLeft); } catch {} });
 }
 
