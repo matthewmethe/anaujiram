@@ -39,9 +39,11 @@ function renderChart(reset = true) {
     };
   });
 
-  // On a phone the x axis runs only a couple of weeks past the week shown (at least 4 weeks), so
-  // early in a season the lines get the width instead of empty weeks; it grows as the season goes on.
-  const xMax = narrow ? Math.min(season.endWeek, Math.max(state.week + 2, 4)) + 0.5 : season.endWeek + 0.5;
+  // On a phone the x axis stops at the week shown (at least week 2), so the lines use the full width
+  // instead of sharing it with unplayed weeks; it grows as the season goes on. Playoff weeks keep
+  // half a week of room so the shaded playoffs column shows.
+  const xMax = !narrow ? season.endWeek + 0.5
+    : state.week > lastRegular ? state.week + 0.5 : Math.max(state.week, 2);
 
   // Reference marks live on their own series so hiding a manager never removes them:
   // the playoff cut across the regular season, and a shaded playoffs region after it.
@@ -56,7 +58,7 @@ function renderChart(reset = true) {
       silent: true,
       itemStyle: { color: cssVar("--playoff-wash") },
       label: { show: true, position: "top", distance: 6, color: ink.muted, fontSize: 11, formatter: "Playoffs" },
-      data: showPlayoffs ? [[{ xAxis: split }, { xAxis: season.endWeek + 0.5 }]] : [],
+      data: showPlayoffs ? [[{ xAxis: split }, { xAxis: xMax }]] : [],
     },
     markLine: {
       silent: true, symbol: "none",
