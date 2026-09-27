@@ -411,7 +411,8 @@ tr.expandable:hover td { background: var(--grid); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .tg-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
 .tg-controls .control > span { white-space: nowrap; }
-.tg-controls select { min-width: 0; max-width: 100%; }
+.tg-controls .control { max-width: 100%; }
+.tg-controls select { flex: 0 1 auto; min-width: 0; text-overflow: ellipsis; }
 .tg-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .tg-check { gap: 4px; cursor: pointer; }
 fieldset.tg-shape { border: 0; margin: 0; padding: 0; }
