@@ -16,7 +16,7 @@ const ALL_STARTS = DATA.starts.map(([season, week, manager, p, slot, pts, type])
   pos: slot === "W/R/T" ? DATA.players[p].pos : slot,
 }));
 
-const state = { games: "all", activeOnly: false, metric: "above", sortKey: "Overall", sortDir: "desc" };
+const state = { games: "all", activeOnly: false, metric: "avg", sortKey: "Overall", sortDir: "desc" };
 
 function filteredStarts() {
   return ALL_STARTS.filter(s => state.games === "all" || s.type === 0);
