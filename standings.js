@@ -6,6 +6,7 @@ const teamByKey = season => Object.fromEntries(season.teams.map(t => [t.key, t])
 
 /* ---------- Bump chart ---------- */
 
+let focused = null;  // series name of the line tapped on a phone (see below)
 const chart = echarts.init($("bump-chart"), null, { renderer: "svg" });
 
 // Draws the chart through the week picked in the standings table. `reset` redraws from scratch
@@ -28,6 +29,7 @@ function renderChart(reset = true) {
     return {
       name: chartName(team.name),
       type: "line",
+      triggerLineEvent: true,  // taps on the line itself count, not just the week dots
       data,
       symbol: dashed ? "rect" : "circle",
       // On a phone a long season drops the week dots and thins the lines so 17 weeks don't turn to mush.
@@ -100,6 +102,8 @@ function renderChart(reset = true) {
     series,
   }, reset);
   if (narrow) requestAnimationFrame(() => fitEndLabels(season));
+  if (focused && series.some(s => s.name === focused)) chart.dispatchAction({ type: "highlight", seriesName: focused });
+  else focused = null;
 }
 
 // Phone fonts vary, so after drawing, size the right margin to the widest end label as actually rendered:
@@ -171,8 +175,25 @@ function tooltipHtml(season, teams, params) {
   return `<b>${title}</b><table style="margin-top:4px;border-collapse:collapse">${rows}</table>`;
 }
 
+// On a phone, tapping a team's line dims the others; tapping it again (or empty space) brings them back.
+// (A mouse gets the same focus from hovering, so this is phone-only.)
+function unfocus() { if (focused) chart.dispatchAction({ type: "downplay" }); focused = null; }
+// The chart notes which line a finger went down on; the browser's own click then says it was a tap (it never
+// fires for a scroll swipe). The chart's click event alone misses the first tap on a phone.
+let pressed = null;
+chart.on("mousedown", { seriesType: "line" }, p => { pressed = { name: p.seriesName, at: Date.now() }; });
+$("bump-chart").addEventListener("click", () => {
+  const tap = pressed && Date.now() - pressed.at < 1000 ? pressed.name : null;
+  pressed = null;
+  if (window.innerWidth >= 640) return;
+  if (!tap || focused === tap) { unfocus(); return; }  // empty space or the same line again: show everyone
+  chart.dispatchAction({ type: "downplay" });
+  chart.dispatchAction({ type: "highlight", seriesName: tap });
+  focused = tap;
+});
+
 chart.getZr().on("click", e => {
-  if (window.innerWidth < 640) return;  // on a phone a tap is usually just scrolling; pick weeks from the menu
+  if (window.innerWidth < 640) return;  // on a phone taps focus a line instead; pick weeks from the menu
   if (!chart.containPixel("grid", [e.offsetX, e.offsetY])) return;
   const [x] = chart.convertFromPixel("grid", [e.offsetX, e.offsetY]);
   const week = Math.round(x);
