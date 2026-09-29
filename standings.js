@@ -90,6 +90,7 @@ function renderChart(reset = true) {
       splitLine: { lineStyle: { color: ink.grid } },
     },
     tooltip: {
+      show: !narrow,  // on a phone the week box just covers the chart; tapping a week still picks it
       trigger: "axis",
       axisPointer: { type: "line", snap: true, lineStyle: { color: ink.axis } },
       backgroundColor: ink.surface, borderColor: ink.border,
