@@ -181,6 +181,29 @@ function renderLegend() {
 
 /* ---------- Standings table ---------- */
 
+// Each manager's current regular-season streak through `week`, like Yahoo's "W-2" / "L-1" / "T-1".
+function streaks(season, week) {
+  const results = {};
+  for (const g of DATA.games) {
+    if (g.season !== season.season || g.playoffs || g.consolation || g.week > week) continue;
+    const res = g.ap > g.bp ? ["W", "L"] : g.ap < g.bp ? ["L", "W"] : ["T", "T"];
+    (results[g.a] ??= []).push([g.week, res[0]]);
+    (results[g.b] ??= []).push([g.week, res[1]]);
+  }
+  const out = {};
+  for (const [manager, rs] of Object.entries(results)) {
+    rs.sort((x, y) => y[0] - x[0]);
+    let n = 0;
+    while (n < rs.length && rs[n][1] === rs[0][1]) n++;
+    out[manager] = { kind: rs[0][1], n };
+  }
+  return out;
+}
+
+const streakCell = s => s
+  ? `<td class="num"><span class="${s.kind === "W" ? "delta-up" : s.kind === "L" ? "delta-down" : "delta-none"}">${s.kind}-${s.n}</span></td>`
+  : `<td class="num delta-none">–</td>`;
+
 function renderTable() {
   const season = seasonData();
   const teams = teamByKey(season);
@@ -200,7 +223,9 @@ function renderTable() {
     ${playoffs
       ? `<th class="num">Seed</th><th class="num">This week</th><th class="num">Reg. season</th>`
       : `<th class="num">W-L-T</th><th class="num">PF</th><th class="num">PA</th>`}
+    <th class="num" title="${playoffs ? "Streak at the end of the regular season" : "Current regular-season streak"}">Streak</th>
   </tr>`;
+  const streak = streaks(season, Math.min(state.week, season.regularSeasonWeeks));
 
   $("standings-body").innerHTML = week.standings.map(r => {
     const t = teams[r.team];
@@ -218,6 +243,7 @@ function renderTable() {
       <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(t.name)}${final && r.rank === 1 ? ' <span class="champ">Champion</span>' : ""}</span></td>
       <td>${escapeHtml(managersById[t.manager].name)}</td>
       ${stats}
+      ${streakCell(streak[t.manager])}
     </tr>`;
   }).join("");
 }
