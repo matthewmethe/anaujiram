@@ -20,12 +20,12 @@ function renderChart(reset = true) {
                 muted: cssVar("--text-muted"), grid: cssVar("--grid"), axis: cssVar("--axis"),
                 surface: cssVar("--surface"), border: cssVar("--border") };
 
+  // The chart labels teams by team name (the table below keeps manager names); color still follows the manager.
   const series = season.teams.map(team => {
-    const manager = managersById[team.manager];
     const { color, dashed } = managerStyle(team.manager);
     const data = shownWeeks.map(w => [w.week, w.standings.find(r => r.team === team.key).rank]);
     return {
-      name: manager.name,
+      name: team.name,
       type: "line",
       data,
       symbol: dashed ? "rect" : "circle",
@@ -34,8 +34,9 @@ function renderChart(reset = true) {
       itemStyle: { color, borderColor: ink.surface, borderWidth: 2 },
       emphasis: { focus: "series", lineStyle: { width: 3 } },
       blur: { lineStyle: { opacity: 0.12 }, itemStyle: { opacity: 0.12 } },
-      endLabel: { show: true, formatter: manager.name, color: ink.secondary,
-                  fontSize: narrow ? 11 : 12, distance: 8 },
+      endLabel: { show: true, formatter: team.name, color: ink.secondary,
+                  fontSize: narrow ? 11 : 12, distance: 8,
+                  width: END_LABEL_MAX[narrow ? 1 : 0], overflow: "truncate" },
     };
   });
 
@@ -72,7 +73,7 @@ function renderChart(reset = true) {
     animationDuration: 500,
     grid: { left: 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
     legend: { show: false, selected: Object.fromEntries(
-      season.teams.map(t => [managersById[t.manager].name, !state.hidden.has(t.manager)])) },
+      season.teams.map(t => [t.name, !state.hidden.has(t.manager)])) },
     xAxis: {
       type: "value", min: 1, max: xMax, interval: 1,
       name: "Week", nameLocation: "middle", nameGap: 28,
@@ -97,12 +98,16 @@ function renderChart(reset = true) {
   }, reset);
 }
 
+// End labels are team names; long ones are cut off with "…" past this width ([desktop, phone]) so
+// they don't crowd the lines on a phone. Hover a line for the full name.
+const END_LABEL_MAX = [170, 96];
+
 // Right margin wide enough for the longest end-of-line name label.
 function endLabelRoom(season, narrow) {
   const ctx = (endLabelRoom.canvas ??= document.createElement("canvas")).getContext("2d");
   ctx.font = `${narrow ? 11 : 12}px system-ui, -apple-system, "Segoe UI", sans-serif`;
-  const widest = Math.max(...season.teams.map(t => ctx.measureText(managersById[t.manager].name).width));
-  return Math.ceil(widest) + 20;
+  const widest = Math.max(...season.teams.map(t => ctx.measureText(t.name).width));
+  return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + 20;
 }
 
 // "Semifinals" / "Final" for the playoff weeks, "Week N" otherwise.
@@ -138,7 +143,7 @@ function tooltipHtml(season, teams, params) {
         : `<td style="${cell}">${record(r)}</td><td style="${cell};text-align:right">${fmtPts(r.pf)}</td>`;
       return `<tr>
         <td style="text-align:right;padding-right:6px">${final ? ordinal(r.rank) : `${r.rank}.`}</td>
-        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px"></span>${escapeHtml(managersById[t.manager].name)}</td>
+        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px"></span>${escapeHtml(t.name)}</td>
         ${detail}
       </tr>`;
     }).join("");
@@ -158,7 +163,7 @@ chart.getZr().on("click", e => {
 
 function renderLegend() {
   const season = seasonData();
-  const managers = season.teams.map(t => managersById[t.manager])
+  const managers = season.teams.map(t => ({ ...managersById[t.manager], team: t.name }))
     .sort((a, b) => a.dashed - b.dashed || a.slot - b.slot);
   const legend = $("legend");
   legend.innerHTML = "";
@@ -167,14 +172,14 @@ function renderLegend() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("aria-pressed", String(!state.hidden.has(m.id)));
-    btn.innerHTML = `<span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(m.name)}`;
+    btn.innerHTML = `<span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(m.team)}`;
     btn.addEventListener("click", () => {
       state.hidden.has(m.id) ? state.hidden.delete(m.id) : state.hidden.add(m.id);
       btn.setAttribute("aria-pressed", String(!state.hidden.has(m.id)));
-      chart.dispatchAction({ type: "legendToggleSelect", name: m.name });
+      chart.dispatchAction({ type: "legendToggleSelect", name: m.team });
     });
-    btn.addEventListener("mouseenter", () => chart.dispatchAction({ type: "highlight", seriesName: m.name }));
-    btn.addEventListener("mouseleave", () => chart.dispatchAction({ type: "downplay", seriesName: m.name }));
+    btn.addEventListener("mouseenter", () => chart.dispatchAction({ type: "highlight", seriesName: m.team }));
+    btn.addEventListener("mouseleave", () => chart.dispatchAction({ type: "downplay", seriesName: m.team }));
     legend.appendChild(btn);
   }
 }
