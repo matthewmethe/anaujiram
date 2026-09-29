@@ -16,6 +16,7 @@ function renderChart(reset = true) {
   const teams = teamByKey(season);
   const lastRegular = season.regularSeasonWeeks;
   const narrow = window.innerWidth < 640;
+  const crowded = shownWeeks.length > 8;
   const ink = { primary: cssVar("--text-primary"), secondary: cssVar("--text-secondary"),
                 muted: cssVar("--text-muted"), grid: cssVar("--grid"), axis: cssVar("--axis"),
                 surface: cssVar("--surface"), border: cssVar("--border") };
@@ -29,22 +30,22 @@ function renderChart(reset = true) {
       type: "line",
       data,
       symbol: dashed ? "rect" : "circle",
-      symbolSize: narrow ? 5 : 8,
-      lineStyle: { width: 2, type: dashed ? "dashed" : "solid", color },
+      // On a phone a long season drops the week dots and thins the lines so 17 weeks don't turn to mush.
+      symbolSize: narrow ? (crowded ? 0 : 5) : 8,
+      lineStyle: { width: narrow && crowded ? 1.5 : 2, type: dashed ? "dashed" : "solid", color },
       itemStyle: { color, borderColor: ink.surface, borderWidth: 2 },
       emphasis: { focus: "series", lineStyle: { width: 3 } },
       blur: { lineStyle: { opacity: 0.12 }, itemStyle: { opacity: 0.12 } },
       endLabel: { show: true, formatter: chartName(team.name), color: ink.secondary,
-                  fontSize: narrow ? 11 : 12, distance: narrow ? 5 : 8,
+                  fontSize: narrow ? 10 : 12, distance: narrow ? 3 : 8,
                   width: END_LABEL_MAX[narrow ? 1 : 0], overflow: "truncate" },
     };
   });
 
   // On a phone the x axis stops at the week shown (at least week 2), so the lines use the full width
-  // instead of sharing it with unplayed weeks; it grows as the season goes on. Playoff weeks keep
-  // half a week of room so the shaded playoffs column shows.
+  // instead of sharing it with unplayed weeks; it grows as the season goes on.
   const xMax = !narrow ? season.endWeek + 0.5
-    : state.week > lastRegular ? state.week + 0.5 : Math.max(state.week, 2);
+    : Math.max(state.week, 2);
 
   // Reference marks live on their own series so hiding a manager never removes them:
   // the playoff cut across the regular season, and a shaded playoffs region after it.
@@ -71,7 +72,7 @@ function renderChart(reset = true) {
 
   chart.setOption({
     animationDuration: 500,
-    grid: { left: narrow ? 30 : 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
+    grid: { left: narrow ? 24 : 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
     legend: { show: false, selected: Object.fromEntries(
       season.teams.map(t => [chartName(t.name), !state.hidden.has(t.manager)])) },
     xAxis: {
@@ -85,7 +86,7 @@ function renderChart(reset = true) {
     },
     yAxis: {
       type: "value", inverse: true, min: 1, max: season.numTeams, interval: 1,
-      axisLabel: { color: ink.muted, formatter: ordinal, margin: narrow ? 4 : 8 },
+      axisLabel: { color: ink.muted, formatter: ordinal, margin: narrow ? 3 : 8, fontSize: narrow ? 10 : 12 },
       splitLine: { lineStyle: { color: ink.grid } },
     },
     tooltip: {
@@ -97,11 +98,24 @@ function renderChart(reset = true) {
     },
     series,
   }, reset);
+  if (narrow) requestAnimationFrame(() => fitEndLabels(season));
+}
+
+// Phone fonts vary, so after drawing, size the right margin to the widest end label as actually rendered:
+// names sit right at the edge without being clipped, and the lines get every spare pixel.
+function fitEndLabels(season) {
+  const names = new Set(season.teams.map(t => chartName(t.name)));
+  const widths = [...$("bump-chart").querySelectorAll("svg text")]
+    .filter(el => { const s = el.textContent.replace(/(\.\.\.|…)$/, ""); return [...names].some(n => n.startsWith(s)) && s.length > 2; })
+    .map(el => el.getBoundingClientRect().width);  // shortened labels ("Unruly Underda...") count too
+  if (!widths.length) return;
+  const room = Math.ceil(Math.max(...widths)) + 3 + 3;  // widest label as drawn (already capped) + label distance + a hair
+  if (Math.abs(room - chart.getOption().grid[0].right) > 1) chart.setOption({ grid: { right: room } });
 }
 
 // End labels are team names; long ones are cut off with "…" past this width ([desktop, phone]) so
 // they don't crowd the lines on a phone. Hover a line for the full name.
-const END_LABEL_MAX = [170, 96];
+const END_LABEL_MAX = [170, 90];
 // Shorter names for the longest teams, used by the chart, its legend and the standings table on this page.
 const SHORT_NAMES = { "Henderson's Friendersons": "Henderson's" };
 const chartName = name => SHORT_NAMES[name] ?? name;
@@ -109,9 +123,9 @@ const chartName = name => SHORT_NAMES[name] ?? name;
 // Right margin wide enough for the longest end-of-line name label.
 function endLabelRoom(season, narrow) {
   const ctx = (endLabelRoom.canvas ??= document.createElement("canvas")).getContext("2d");
-  ctx.font = `${narrow ? 11 : 12}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  ctx.font = `${narrow ? 10 : 12}px sans-serif`;  // the chart's own label font
   const widest = Math.max(...season.teams.map(t => ctx.measureText(chartName(t.name)).width));
-  return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + (narrow ? 14 : 20);
+  return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + (narrow ? 6 : 20);
 }
 
 // "Semifinals" / "Final" for the playoff weeks, "Week N" otherwise.

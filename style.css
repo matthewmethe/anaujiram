@@ -341,7 +341,7 @@ button.link:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .chart { height: 440px; }
-  #bump-chart { height: 340px; margin: 0 -8px; width: calc(100% + 16px); }  /* use some of the card's side padding */
+  #bump-chart { height: 340px; margin: 0 -12px; width: calc(100% + 24px); }  /* run nearly to the card's edges */
   .chart-short { height: 220px; }
   .card { padding: 14px; }
   .versus .big { font-size: 32px; }
