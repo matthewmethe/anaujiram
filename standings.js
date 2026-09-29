@@ -34,7 +34,7 @@ function renderChart(reset = true) {
       itemStyle: { color, borderColor: ink.surface, borderWidth: 2 },
       emphasis: { focus: "series", lineStyle: { width: 3 } },
       blur: { lineStyle: { opacity: 0.12 }, itemStyle: { opacity: 0.12 } },
-      endLabel: { show: true, formatter: team.name, color: ink.secondary,
+      endLabel: { show: true, formatter: chartName(team.name), color: ink.secondary,
                   fontSize: narrow ? 11 : 12, distance: 8,
                   width: END_LABEL_MAX[narrow ? 1 : 0], overflow: "truncate" },
     };
@@ -79,7 +79,8 @@ function renderChart(reset = true) {
       name: "Week", nameLocation: "middle", nameGap: 28,
       nameTextStyle: { color: ink.muted },
       axisLine: { lineStyle: { color: ink.axis } }, axisTick: { show: false },
-      axisLabel: { color: ink.muted, formatter: v => Number.isInteger(v) ? String(v) : "" },
+      // On a phone a long season labels every other week so the numbers don't run together.
+      axisLabel: { color: ink.muted, formatter: v => Number.isInteger(v) && (!narrow || xMax <= 10.5 || v % 2) ? String(v) : "" },
       splitLine: { show: false },
     },
     yAxis: {
@@ -101,12 +102,15 @@ function renderChart(reset = true) {
 // End labels are team names; long ones are cut off with "…" past this width ([desktop, phone]) so
 // they don't crowd the lines on a phone. Hover a line for the full name.
 const END_LABEL_MAX = [170, 96];
+// Shorter end labels for the longest team names (the legend and tooltips keep the full name).
+const SHORT_NAMES = { "Henderson's Friendersons": "Hendo" };
+const chartName = name => SHORT_NAMES[name] ?? name;
 
 // Right margin wide enough for the longest end-of-line name label.
 function endLabelRoom(season, narrow) {
   const ctx = (endLabelRoom.canvas ??= document.createElement("canvas")).getContext("2d");
   ctx.font = `${narrow ? 11 : 12}px system-ui, -apple-system, "Segoe UI", sans-serif`;
-  const widest = Math.max(...season.teams.map(t => ctx.measureText(t.name).width));
+  const widest = Math.max(...season.teams.map(t => ctx.measureText(chartName(t.name)).width));
   return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + 20;
 }
 
@@ -222,13 +226,15 @@ function renderTable() {
   $("table-title").textContent = final ? `${season.season} final standings`
     : playoffs ? `${season.season} ${weekName(season, state.week).split(": ")[1].toLowerCase()}`
     : `${season.season} standings`;
+  // Rank, team and record first so they fit on a phone without scrolling; manager last.
   $("standings-head").innerHTML = `<tr>
-    <th class="num">${final ? "Finish" : "Rank"}</th><th class="num" title="Change since previous week">±</th>
-    <th>Team</th><th>Manager</th>
+    <th class="num tight" title="${final ? "Final finish" : "Rank"}">#</th><th class="num tight" title="Spots moved since the previous week">±</th>
+    <th>Team</th>
     ${playoffs
-      ? `<th class="num">Seed</th><th class="num">This week</th><th class="num">Reg. season</th>`
+      ? `<th class="num" title="Regular-season record">Record</th><th class="num">This week</th><th class="num">Seed</th>`
       : `<th class="num">W-L-T</th><th class="num">PF</th><th class="num">PA</th>`}
     <th class="num" title="${playoffs ? "Streak at the end of the regular season" : "Current regular-season streak"}">Streak</th>
+    <th>Manager</th>
   </tr>`;
   const streak = streaks(season, Math.min(state.week, season.regularSeasonWeeks));
 
@@ -240,15 +246,15 @@ function renderTable() {
                 : move < 0 ? `<span class="delta-down">▼${-move}</span>`
                 : `<span class="delta-none">–</span>`;
     const stats = playoffs
-      ? `<td class="num">${r.seed}</td><td class="num">${gameResult(r)}</td><td class="num">${record(r)}</td>`
+      ? `<td class="num">${record(r)}</td><td class="num">${gameResult(r)}</td><td class="num">${r.seed}</td>`
       : `<td class="num">${record(r)}</td><td class="num">${fmtPts(r.pf)}</td><td class="num">${fmtPts(r.pa)}</td>`;
     return `<tr class="${!playoffs && r.rank === season.playoffTeams ? "cutline" : ""}">
-      <td class="num">${final ? ordinal(r.rank) : r.rank}</td>
-      <td class="num">${delta}</td>
+      <td class="num tight">${final ? ordinal(r.rank) : r.rank}</td>
+      <td class="num tight">${delta}</td>
       <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(t.name)}${final && r.rank === 1 ? ' <span class="champ">Champion</span>' : ""}</span></td>
-      <td>${escapeHtml(managersById[t.manager].name)}</td>
       ${stats}
       ${streakCell(streak[t.manager])}
+      <td>${escapeHtml(managersById[t.manager].name)}</td>
     </tr>`;
   }).join("");
 }
