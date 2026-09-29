@@ -78,5 +78,18 @@ if (nav) {
   nav.addEventListener("click", () => { try { sessionStorage.setItem("navScroll", nav.scrollLeft); } catch {} });
 }
 
+// A refresh starts at the top (browsers otherwise put you back where you were); the back button still
+// returns to your spot.
+try {
+  const load = performance.getEntriesByType("navigation")[0];
+  if (load && load.type === "reload") {
+    history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+    // Some browsers restore the old spot once the page finishes loading, after this runs; undo that too.
+    window.addEventListener("load", () => setTimeout(() => window.scrollTo(0, 0), 0));
+  }
+  else history.scrollRestoration = "auto";
+} catch {}
+
 const sample = document.getElementById("sample-banner");
 if (sample) sample.hidden = !DATA.isSample;
