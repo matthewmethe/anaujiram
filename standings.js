@@ -25,7 +25,7 @@ function renderChart(reset = true) {
     const { color, dashed } = managerStyle(team.manager);
     const data = shownWeeks.map(w => [w.week, w.standings.find(r => r.team === team.key).rank]);
     return {
-      name: team.name,
+      name: chartName(team.name),
       type: "line",
       data,
       symbol: dashed ? "rect" : "circle",
@@ -35,7 +35,7 @@ function renderChart(reset = true) {
       emphasis: { focus: "series", lineStyle: { width: 3 } },
       blur: { lineStyle: { opacity: 0.12 }, itemStyle: { opacity: 0.12 } },
       endLabel: { show: true, formatter: chartName(team.name), color: ink.secondary,
-                  fontSize: narrow ? 11 : 12, distance: 8,
+                  fontSize: narrow ? 11 : 12, distance: narrow ? 5 : 8,
                   width: END_LABEL_MAX[narrow ? 1 : 0], overflow: "truncate" },
     };
   });
@@ -71,9 +71,9 @@ function renderChart(reset = true) {
 
   chart.setOption({
     animationDuration: 500,
-    grid: { left: 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
+    grid: { left: narrow ? 30 : 44, right: endLabelRoom(season, narrow), top: 30, bottom: 44 },
     legend: { show: false, selected: Object.fromEntries(
-      season.teams.map(t => [t.name, !state.hidden.has(t.manager)])) },
+      season.teams.map(t => [chartName(t.name), !state.hidden.has(t.manager)])) },
     xAxis: {
       type: "value", min: 1, max: xMax, interval: 1,
       name: "Week", nameLocation: "middle", nameGap: 28,
@@ -85,7 +85,7 @@ function renderChart(reset = true) {
     },
     yAxis: {
       type: "value", inverse: true, min: 1, max: season.numTeams, interval: 1,
-      axisLabel: { color: ink.muted, formatter: ordinal },
+      axisLabel: { color: ink.muted, formatter: ordinal, margin: narrow ? 4 : 8 },
       splitLine: { lineStyle: { color: ink.grid } },
     },
     tooltip: {
@@ -102,8 +102,8 @@ function renderChart(reset = true) {
 // End labels are team names; long ones are cut off with "…" past this width ([desktop, phone]) so
 // they don't crowd the lines on a phone. Hover a line for the full name.
 const END_LABEL_MAX = [170, 96];
-// Shorter end labels for the longest team names (the legend and tooltips keep the full name).
-const SHORT_NAMES = { "Henderson's Friendersons": "Hendo" };
+// Shorter names for the longest teams, used by the chart, its legend and the standings table on this page.
+const SHORT_NAMES = { "Henderson's Friendersons": "Henderson's" };
 const chartName = name => SHORT_NAMES[name] ?? name;
 
 // Right margin wide enough for the longest end-of-line name label.
@@ -111,7 +111,7 @@ function endLabelRoom(season, narrow) {
   const ctx = (endLabelRoom.canvas ??= document.createElement("canvas")).getContext("2d");
   ctx.font = `${narrow ? 11 : 12}px system-ui, -apple-system, "Segoe UI", sans-serif`;
   const widest = Math.max(...season.teams.map(t => ctx.measureText(chartName(t.name)).width));
-  return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + 20;
+  return Math.ceil(Math.min(widest, END_LABEL_MAX[narrow ? 1 : 0])) + (narrow ? 14 : 20);
 }
 
 // "Semifinals" / "Final" for the playoff weeks, "Week N" otherwise.
@@ -147,7 +147,7 @@ function tooltipHtml(season, teams, params) {
         : `<td style="${cell}">${record(r)}</td><td style="${cell};text-align:right">${fmtPts(r.pf)}</td>`;
       return `<tr>
         <td style="text-align:right;padding-right:6px">${final ? ordinal(r.rank) : `${r.rank}.`}</td>
-        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px"></span>${escapeHtml(t.name)}</td>
+        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px"></span>${escapeHtml(chartName(t.name))}</td>
         ${detail}
       </tr>`;
     }).join("");
@@ -167,7 +167,7 @@ chart.getZr().on("click", e => {
 
 function renderLegend() {
   const season = seasonData();
-  const managers = season.teams.map(t => ({ ...managersById[t.manager], team: t.name }))
+  const managers = season.teams.map(t => ({ ...managersById[t.manager], team: chartName(t.name) }))
     .sort((a, b) => a.dashed - b.dashed || a.slot - b.slot);
   const legend = $("legend");
   legend.innerHTML = "";
@@ -226,17 +226,18 @@ function renderTable() {
   $("table-title").textContent = final ? `${season.season} final standings`
     : playoffs ? `${season.season} ${weekName(season, state.week).split(": ")[1].toLowerCase()}`
     : `${season.season} standings`;
-  // Rank, team and record first so they fit on a phone without scrolling; manager last.
+  // Rank, team, record and streak first so they fit on a phone without scrolling; manager last.
+  const streakHead = `<th class="num" title="${playoffs ? "Streak at the end of the regular season" : "Current regular-season streak"}">Strk</th>`;
   $("standings-head").innerHTML = `<tr>
     <th class="num tight" title="${final ? "Final finish" : "Rank"}">#</th><th class="num tight" title="Spots moved since the previous week">±</th>
     <th>Team</th>
     ${playoffs
-      ? `<th class="num" title="Regular-season record">Record</th><th class="num">This week</th><th class="num">Seed</th>`
-      : `<th class="num">W-L-T</th><th class="num">PF</th><th class="num">PA</th>`}
-    <th class="num" title="${playoffs ? "Streak at the end of the regular season" : "Current regular-season streak"}">Streak</th>
+      ? `<th class="num" title="Regular-season record">Record</th>${streakHead}<th class="num">This week</th><th class="num">Seed</th>`
+      : `<th class="num">W-L-T</th>${streakHead}<th class="num">PF</th><th class="num">PA</th>`}
     <th>Manager</th>
   </tr>`;
   const streak = streaks(season, Math.min(state.week, season.regularSeasonWeeks));
+  const streakTd = manager => streakCell(streak[manager]);
 
   $("standings-body").innerHTML = week.standings.map(r => {
     const t = teams[r.team];
@@ -246,14 +247,13 @@ function renderTable() {
                 : move < 0 ? `<span class="delta-down">▼${-move}</span>`
                 : `<span class="delta-none">–</span>`;
     const stats = playoffs
-      ? `<td class="num">${record(r)}</td><td class="num">${gameResult(r)}</td><td class="num">${r.seed}</td>`
-      : `<td class="num">${record(r)}</td><td class="num">${fmtPts(r.pf)}</td><td class="num">${fmtPts(r.pa)}</td>`;
+      ? `<td class="num">${record(r)}</td>${streakTd(t.manager)}<td class="num">${gameResult(r)}</td><td class="num">${r.seed}</td>`
+      : `<td class="num">${record(r)}</td>${streakTd(t.manager)}<td class="num">${fmtPts(r.pf)}</td><td class="num">${fmtPts(r.pa)}</td>`;
     return `<tr class="${!playoffs && r.rank === season.playoffTeams ? "cutline" : ""}">
       <td class="num tight">${final ? ordinal(r.rank) : r.rank}</td>
       <td class="num tight">${delta}</td>
-      <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(t.name)}${final && r.rank === 1 ? ' <span class="champ">Champion</span>' : ""}</span></td>
+      <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(chartName(t.name))}${final && r.rank === 1 ? ' <span class="champ">Champion</span>' : ""}</span></td>
       ${stats}
-      ${streakCell(streak[t.manager])}
       <td>${escapeHtml(managersById[t.manager].name)}</td>
     </tr>`;
   }).join("");

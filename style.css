@@ -341,7 +341,7 @@ button.link:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .chart { height: 440px; }
-  #bump-chart { height: 340px; }
+  #bump-chart { height: 340px; margin: 0 -8px; width: calc(100% + 16px); }  /* use some of the card's side padding */
   .chart-short { height: 220px; }
   .card { padding: 14px; }
   .versus .big { font-size: 32px; }
@@ -458,5 +458,8 @@ tr.tg-kept td { color: var(--text-muted); }
 .standings th.tight, .standings td.tight { width: 1%; padding-left: 4px; padding-right: 4px; }
 @media (max-width: 640px) {
   #standings-head th, #standings-body td { padding-left: 5px; padding-right: 5px; }
-  #standings-body td:nth-child(3) { white-space: normal; min-width: 128px; }  /* long team names wrap */
+  #standings-body .team { gap: 5px; }
+  #standings-body .team .swatch { width: 12px; flex: none; }
+  #standings-body .champ { font-size: 0; padding: 0; border: 0; }  /* the Champion tag becomes a trophy */
+  #standings-body .champ::before { content: "🏆"; font-size: 13px; }
 }
