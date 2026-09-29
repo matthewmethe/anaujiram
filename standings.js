@@ -172,6 +172,7 @@ function tooltipHtml(season, teams, params) {
 }
 
 chart.getZr().on("click", e => {
+  if (window.innerWidth < 640) return;  // on a phone a tap is usually just scrolling; pick weeks from the menu
   if (!chart.containPixel("grid", [e.offsetX, e.offsetY])) return;
   const [x] = chart.convertFromPixel("grid", [e.offsetX, e.offsetY]);
   const week = Math.round(x);
