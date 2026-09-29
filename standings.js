@@ -257,6 +257,24 @@ function renderTable() {
       <td>${escapeHtml(managersById[t.manager].name)}</td>
     </tr>`;
   }).join("");
+  alignStandingsEdge();
+}
+
+// On a phone, if the column after the points-for column peeks in at the right edge, widen the gap between
+// the rank and spots-moved columns just enough to push it off-screen, so the table ends cleanly at PF
+// (or Strk in the playoff view). Scrolling sideways still shows the rest.
+function alignStandingsEdge() {
+  const cells = [...document.querySelectorAll("#standings-head th.tight + th.tight, #standings-body td.tight + td.tight")];
+  for (const c of cells) c.style.paddingLeft = "";
+  if (window.innerWidth >= 640) return;
+  const box = $("standings-body").closest(".table-scroll").getBoundingClientRect();
+  const heads = [...document.querySelectorAll("#standings-head th")];
+  const peeking = heads.find(th => { const r = th.getBoundingClientRect(); return r.left < box.right - 1 && r.right > box.right + 1; });
+  if (!peeking) return;
+  const push = box.right - peeking.getBoundingClientRect().left;
+  if (push > 48) return;  // a big gap would look odd; leave a mostly visible column be
+  const base = parseFloat(getComputedStyle(cells[0]).paddingLeft);
+  for (const c of cells) c.style.paddingLeft = `${base + push}px`;
 }
 
 /* ---------- Controls ---------- */
@@ -285,7 +303,7 @@ function init() {
   $("season-select").addEventListener("change", e => setSeason(Number(e.target.value)));
   $("week-select").addEventListener("change", e => setWeek(Number(e.target.value)));
 
-  window.addEventListener("resize", () => { chart.resize(); renderChart(); });
+  window.addEventListener("resize", () => { chart.resize(); renderChart(); alignStandingsEdge(); });
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     renderChart(); renderLegend(); renderTable();
   });
