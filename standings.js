@@ -175,22 +175,71 @@ function tooltipHtml(season, teams, params) {
   return `<b>${title}</b><table style="margin-top:4px;border-collapse:collapse">${rows}</table>`;
 }
 
-// On a phone, tapping a team's line dims the others; tapping it again (or empty space) brings them back.
+// On a phone, tapping a team's line (or its name) dims the others; while one is picked, the next tap anywhere
+// on the chart brings everyone back, so a stray tap never jumps straight to another team.
 // (A mouse gets the same focus from hovering, so this is phone-only.)
 function unfocus() { if (focused) chart.dispatchAction({ type: "downplay" }); focused = null; }
-// The chart notes which line a finger went down on; the browser's own click then says it was a tap (it never
-// fires for a scroll swipe). The chart's click event alone misses the first tap on a phone.
-let pressed = null;
-chart.on("mousedown", { seriesType: "line" }, p => { pressed = { name: p.seriesName, at: Date.now() }; });
-$("bump-chart").addEventListener("click", () => {
-  const tap = pressed && Date.now() - pressed.at < 1000 ? pressed.name : null;
-  pressed = null;
-  if (window.innerWidth >= 640) return;
-  if (!tap || focused === tap) { unfocus(); return; }  // empty space or the same line again: show everyone
-  chart.dispatchAction({ type: "downplay" });
-  chart.dispatchAction({ type: "highlight", seriesName: tap });
-  focused = tap;
-});
+
+// The chart's own touch handling treats any finger on a line as a hover, so scrolling the page across the
+// chart kept picking teams. On a phone it gets no pointer events at all; a deliberate tap is detected here:
+// the finger stays put, lifts quickly, and the page didn't scroll (or wasn't still gliding from a flick).
+const TAP_SLOP = 10, TAP_MS = 500, SCROLL_SETTLE_MS = 300, HIT_PX = 14;
+let touch = null, lastScroll = 0;
+window.addEventListener("scroll", () => { lastScroll = Date.now(); if (touch) touch.moved = true; }, { passive: true });
+
+function lineAt(x, y) {
+  // The team whose line, or end label (from its last point to the right edge), passes nearest the tap.
+  const season = seasonData();
+  const weeks = season.weeks.filter(w => w.week <= state.week);
+  const right = chart.getWidth();
+  let best = null, bestDist = HIT_PX;
+  for (const team of season.teams) {
+    if (state.hidden.has(team.manager)) continue;
+    const pts = weeks.map(w => chart.convertToPixel("grid", [w.week, w.standings.find(r => r.team === team.key).rank]));
+    const last = pts[pts.length - 1];
+    pts.push([right, last[1]]);
+    for (let i = 0; i < pts.length; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[Math.min(i + 1, pts.length - 1)];
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2;
+      const t = len2 ? Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / len2)) : 0;
+      const d = Math.hypot(x - (ax + t * (bx - ax)), y - (ay + t * (by - ay)));
+      if (d < bestDist) { bestDist = d; best = chartName(team.name); }
+    }
+  }
+  return best;
+}
+
+function onTap(x, y) {
+  if (focused) { unfocus(); return; }
+  const name = lineAt(x, y);
+  if (!name) return;
+  chart.dispatchAction({ type: "highlight", seriesName: name });
+  focused = name;
+}
+
+const bump = $("bump-chart");
+const phone = () => window.innerWidth < 640;
+for (const type of ["touchstart", "touchmove", "touchend", "touchcancel", "mousedown", "mousemove", "mouseup",
+                    "mouseover", "mouseout", "click", "dblclick", "contextmenu", "pointerdown", "pointermove",
+                    "pointerup", "pointercancel", "pointerover", "pointerout"]) {
+  bump.addEventListener(type, e => {
+    if (!phone()) return;
+    e.stopPropagation();  // capture phase, so the chart itself never sees it
+    if (type === "touchstart") {
+      const p = e.touches[0];
+      touch = e.touches.length === 1 && Date.now() - lastScroll > SCROLL_SETTLE_MS
+        ? { x: p.clientX, y: p.clientY, at: Date.now(), moved: false } : null;
+    } else if (type === "touchmove" && touch) {
+      const p = e.touches[0];
+      if (Math.hypot(p.clientX - touch.x, p.clientY - touch.y) > TAP_SLOP) touch.moved = true;
+    } else if (type === "touchend" && touch) {
+      const ok = !touch.moved && Date.now() - touch.at < TAP_MS;
+      const box = bump.getBoundingClientRect();
+      if (ok) onTap(touch.x - box.left, touch.y - box.top);
+      touch = null;
+    } else if (type === "touchcancel") touch = null;
+  }, { capture: true, passive: true });
+}
 
 chart.getZr().on("click", e => {
   if (window.innerWidth < 640) return;  // on a phone taps focus a line instead; pick weeks from the menu
@@ -219,8 +268,10 @@ function renderLegend() {
       btn.setAttribute("aria-pressed", String(!state.hidden.has(m.id)));
       chart.dispatchAction({ type: "legendToggleSelect", name: m.team });
     });
-    btn.addEventListener("mouseenter", () => chart.dispatchAction({ type: "highlight", seriesName: m.team }));
-    btn.addEventListener("mouseleave", () => chart.dispatchAction({ type: "downplay", seriesName: m.team }));
+    // Hovering a name previews its line with a mouse. A phone fakes the hover on every tap and never ends it,
+    // which left the chart dimmed, so there the buttons only show or hide.
+    btn.addEventListener("mouseenter", () => { if (!phone()) chart.dispatchAction({ type: "highlight", seriesName: m.team }); });
+    btn.addEventListener("mouseleave", () => { if (!phone()) chart.dispatchAction({ type: "downplay", seriesName: m.team }); });
     legend.appendChild(btn);
   }
 }
