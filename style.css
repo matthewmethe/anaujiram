@@ -464,3 +464,23 @@ tr.tg-kept td { color: var(--text-muted); }
   #standings-body .champ { font-size: 0; padding: 0; border: 0; }  /* the Champion tag becomes a trophy */
   #standings-body .champ::before { content: "🏆"; font-size: 13px; }
 }
+
+/* Narratives */
+.stories { list-style: none; counter-reset: story; margin: 0; padding: 0; }
+.story { counter-increment: story; position: relative; padding: 16px 0 16px 40px; border-top: 1px solid var(--grid); max-width: 72ch; }
+.story:first-child { border-top: 0; padding-top: 4px; }
+.story::before { content: counter(story); position: absolute; left: 0; top: 14px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--playoff-wash); border: 1px solid var(--axis); font-size: 13px; font-weight: 700; text-align: center; line-height: 26px;
+  color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.story:first-child::before { top: 2px; }
+.story h3 { margin: 0; font-size: 17px; line-height: 1.35; }
+.story-teams { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13px; color: var(--text-secondary); }
+.story-team { display: inline-flex; align-items: center; gap: 6px; }
+.story-body p { margin: 8px 0 0; }
+.story-body ul { margin: 8px 0 0; padding-left: 20px; }
+.story-body li + li { margin-top: 4px; }
+.story-body strong { font-variant-numeric: tabular-nums; }
+.story-pager { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--grid); font-size: 14px; }
+.story-pager a { color: var(--accent); text-decoration: none; }
+.story-pager a:hover { text-decoration: underline; }
+@media (max-width: 520px) { .story { padding-left: 34px; } }
