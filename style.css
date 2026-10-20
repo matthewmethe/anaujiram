@@ -484,3 +484,10 @@ tr.tg-kept td { color: var(--text-muted); }
 .story-pager a { color: var(--accent); text-decoration: none; }
 .story-pager a:hover { text-decoration: underline; }
 @media (max-width: 520px) { .story { padding-left: 34px; } }
+
+/* Footer: Yahoo Fantasy attribution (required by the Fantasy Sports API terms) */
+.site-footer { margin: 32px 0 24px; text-align: center; font-size: 13px; color: var(--text-secondary); }
+.site-footer a { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+.site-footer a:hover span { text-decoration: underline; }
+/* Yahoo ships one logo (black "fantasy"); it sits on white so it stays as provided in dark mode too. */
+.site-footer img { height: 16px; width: auto; display: block; box-sizing: content-box; padding: 5px 9px; background: #fff; border-radius: 6px; }
