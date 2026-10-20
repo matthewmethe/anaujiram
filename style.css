@@ -487,6 +487,7 @@ tr.tg-kept td { color: var(--text-muted); }
 .narr-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
 .seg button { font: inherit; font-size: 14px; padding: 5px 14px; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.seg[hidden] { display: none; }
 .seg button + button { border-left: 1px solid var(--axis); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
 .seg button:disabled { opacity: 0.4; cursor: default; }

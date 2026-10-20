@@ -18,6 +18,8 @@ if (NARR.some(n => keyOf(n) === params.get("w"))) select.value = params.get("w")
 let kind = KINDS.includes(params.get("v")) ? params.get("v") : null;
 
 const toggle = $("kind-toggle");
+// Previews are parked for now (data/narratives_previews_parked/); the toggle only shows when one exists.
+toggle.hidden = !NARR.some(n => n.preview);
 
 // A week opens on its recap once there is one, else on its preview.
 const defaultKind = n => n.recap ? "recap" : "preview";
