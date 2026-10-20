@@ -484,6 +484,20 @@ tr.tg-kept td { color: var(--text-muted); }
 .story-pager a { color: var(--accent); text-decoration: none; }
 .story-pager a:hover { text-decoration: underline; }
 @media (max-width: 520px) { .story { padding-left: 34px; } }
+.narr-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; font-size: 14px; padding: 5px 14px; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--axis); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.seg button:disabled { opacity: 0.4; cursor: default; }
+/* Preview matchup header: both teams going in, the all-time series, and the final once played. */
+.mu { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--grid); border-radius: 8px; background: var(--page); font-size: 14px; }
+.mu-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.mu-team { display: inline-flex; align-items: center; gap: 6px; }
+.mu-rec { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.mu-vs { color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.mu-meta { margin-top: 4px; font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.mu-final { margin-top: 4px; font-size: 13px; font-variant-numeric: tabular-nums; }
 
 /* Footer: Yahoo Fantasy attribution (required by the Fantasy Sports API terms) */
 .site-footer { margin: 32px 0 24px; text-align: center; font-size: 13px; color: var(--text-secondary); }
