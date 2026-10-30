@@ -365,6 +365,37 @@ function alignStandingsEdge() {
   for (const c of cells) c.style.paddingLeft = `${base + push}px`;
 }
 
+/* ---------- Playoff odds ---------- */
+
+const pct = x => x === 0 ? "–" : x < 0.01 ? "<1%" : x > 0.99 && x < 1 ? ">99%" : `${Math.round(x * 100)}%`;
+
+// Only for the season in progress, under its standings; the odds are from the latest loaded week.
+function renderOdds() {
+  const odds = DATA.playoffOdds;
+  const show = !!odds && odds.season === state.season;
+  $("odds-card").hidden = !show;
+  if (!show) return;
+  const season = seasonData();
+  const teams = teamByKey(season);
+  const standing = Object.fromEntries(season.weeks.find(w => w.week === odds.afterWeek).standings.map(r => [r.team, r]));
+  $("odds-title").textContent = `Playoff odds after week ${odds.afterWeek}`;
+  $("odds-note").textContent = `${odds.simulations.toLocaleString()} simulations of weeks ${odds.afterWeek + 1}–${odds.lastWeek}. ` +
+    `Each week, every team starts its best lineup from its current roster by Sleeper's half-PPR projections ` +
+    `(injured reserve left out), and scores that projection give or take about ${odds.sd} points. Top ${season.playoffTeams} make the playoffs; ties go to points for.`;
+  $("odds-body").innerHTML = odds.teams.map((o, i) => {
+    const t = teams[o.team];
+    const { color, dashed } = managerStyle(t.manager);
+    return `<tr class="${i === season.playoffTeams - 1 ? "cutline" : ""}">
+      <td><span class="team"><span class="swatch${dashed ? " dashed" : ""}" style="color:${color}"></span>${escapeHtml(chartName(t.name))}</span></td>
+      <td class="num">${record(standing[o.team])}</td>
+      <td class="num strong">${pct(o.playoffs)}</td>
+      <td class="num">${pct(o.first)}</td>
+      <td class="num">${o.wins.toFixed(1)}</td>
+      <td class="num">${o.proj.toFixed(1)}</td>
+    </tr>`;
+  }).join("");
+}
+
 /* ---------- Controls ---------- */
 
 function setWeek(week, reset = false) {
@@ -381,6 +412,7 @@ function setSeason(seasonNum) {
   $("week-select").innerHTML = season.weeks
     .map(w => `<option value="${w.week}">${w.phase === "playoffs" ? weekName(season, w.week) : w.week}</option>`).join("");
   renderLegend();
+  renderOdds();
   setWeek(season.weeks[season.weeks.length - 1].week, true);
 }
 
@@ -393,7 +425,7 @@ function init() {
 
   window.addEventListener("resize", () => { chart.resize(); renderChart(); alignStandingsEdge(); });
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    renderChart(); renderLegend(); renderTable();
+    renderChart(); renderLegend(); renderTable(); renderOdds();
   });
 
   const params = new URLSearchParams(location.search);
